@@ -5,6 +5,12 @@ on:
     # Avoid the busiest start-of-hour period. Scheduled workflows use UTC.
     - cron: "7,37 * * * *"
   workflow_dispatch:
+    inputs:
+      test_notification:
+        description: Send a test notification instead of checking tickets
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,6 +29,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check ticket availability
+        if: ${{ github.event_name == 'schedule' || inputs.test_notification != true }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -32,3 +39,10 @@ jobs:
           --once
           --no-desktop-notification
           --state-file /tmp/sagrada-watcher-state.json
+      - name: Send test notification
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_notification == true }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SAGRADA_WEBHOOK_URL: ${{ secrets.SAGRADA_WEBHOOK_URL }}
+        run: python3 watcher.py --test-notification --no-desktop-notification

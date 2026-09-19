@@ -49,7 +49,9 @@ python3 watcher.py --test-notification --no-desktop-notification
 
 For GitHub Actions, add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` under
 **Settings → Secrets and variables → Actions**. The included workflow reads
-both secrets automatically.
+both secrets automatically. To verify them, open **Actions**, select
+**Check Sagrada Familia tickets**, click **Run workflow**, and enable
+**Send a test notification instead of checking tickets**.
 
 ## Optional Slack/Discord alerts
 
