@@ -4,6 +4,10 @@ This small, dependency-free Python program checks the official ticket calendar
 for **September 30 and October 1, 2026** every 30 minutes. Any entry time counts.
 It only checks availability; it does not reserve or buy tickets.
 
+The included GitHub Actions workflow sends a short, calm, consigliere-style
+Telegram status report after every check—even when nothing has changed. An
+available result is worded more urgently and includes the booking link.
+
 ## Run it
 
 Python 3.9 or newer is sufficient:
@@ -25,6 +29,9 @@ python3 watcher.py --once
 
 # Require at least two tickets
 python3 watcher.py --tickets 2
+
+# Send a notification after every check, including unavailable results
+python3 watcher.py --report-every-check
 
 # Override dates or interval
 python3 watcher.py --dates 2026-09-30 2026-10-01 --interval 1800

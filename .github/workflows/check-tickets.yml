@@ -37,6 +37,7 @@ jobs:
         run: >-
           python3 watcher.py
           --once
+          --report-every-check
           --no-desktop-notification
           --state-file /tmp/sagrada-watcher-state.json
       - name: Send test notification

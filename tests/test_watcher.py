@@ -94,6 +94,31 @@ class WatcherTests(unittest.TestCase):
             },
         )
 
+    def test_consigliere_status_reports_available_date(self):
+        result = watcher.CheckResult(
+            checked_at="2026-09-19T12:00:00+00:00",
+            statuses={"2026-10-30": "availability"},
+        )
+        message = watcher.format_status_message(result, tickets=2)
+
+        self.assertIn("Tickets are available on 2026-10-30", message)
+        self.assertIn("at least 2 visitor(s)", message)
+        self.assertIn(watcher.TICKET_URL, message)
+
+    def test_consigliere_status_reports_no_change(self):
+        result = watcher.CheckResult(
+            checked_at="2026-09-19T12:00:00+00:00",
+            statuses={
+                "2026-09-30": "no-availability",
+                "2026-10-01": "no-availability",
+            },
+        )
+
+        message = watcher.format_status_message(result, tickets=1)
+
+        self.assertIn("remain unavailable", message)
+        self.assertIn("keep an eye on the matter", message)
+
 
 if __name__ == "__main__":
     unittest.main()

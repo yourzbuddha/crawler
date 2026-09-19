@@ -174,6 +174,41 @@ def newly_available(previous: dict[str, str], current: dict[str, str]) -> list[s
     )
 
 
+def format_status_message(result: CheckResult, tickets: int) -> str:
+    """Render a restrained, old-school consigliere-style status report."""
+    available = result.available_dates
+    unavailable = sorted(
+        day for day, status in result.statuses.items() if status == "no-availability"
+    )
+    unknown = sorted(
+        day
+        for day, status in result.statuses.items()
+        if status not in {"availability", "no-availability"}
+    )
+
+    if available:
+        days = ", ".join(available)
+        return (
+            "I’ve looked into the matter. Tickets are available on "
+            f"{days} for at least {tickets} visitor(s). Opportunities like this "
+            f"have a way of disappearing. I suggest you act now: {TICKET_URL}"
+        )
+    if unavailable and not unknown:
+        days = ", ".join(unavailable)
+        return (
+            f"I’ve made the usual inquiries. {days} remain unavailable. "
+            "Nothing has changed, but I’ll continue to keep an eye on the matter."
+        )
+
+    details = ", ".join(
+        f"{day}: {status}" for day, status in sorted(result.statuses.items())
+    )
+    return (
+        "There’s some uncertainty in the information I received. "
+        f"The current report is: {details}. I’ll make another inquiry shortly."
+    )
+
+
 def desktop_notification(message: str) -> None:
     if platform.system() != "Darwin" or not shutil.which("osascript"):
         return
@@ -258,7 +293,11 @@ def run_check(args: argparse.Namespace, client: TicketClient) -> None:
     )
     logging.info("Availability check — %s", summary)
 
-    if changed:
+    if args.report_every_check:
+        message = format_status_message(result, args.tickets)
+        logging.info("Sending scheduled status report")
+        send_notifications(args, message)
+    elif changed:
         days = ", ".join(changed)
         message = (
             f"Tickets are available on {days} for at least {args.tickets} "
@@ -319,6 +358,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--test-notification",
         action="store_true",
         help="send a test alert and exit without checking tickets",
+    )
+    parser.add_argument(
+        "--report-every-check",
+        action="store_true",
+        help="send a status message after every check, even if nothing changed",
     )
     parser.add_argument(
         "--no-desktop-notification",
